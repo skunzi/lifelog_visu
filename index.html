@@ -58,7 +58,20 @@
   #tooltip .tt-source.st { color: #ff8c00; }
   #tooltip .tt-source.fb { color: #e040fb; }
   #tooltip .tt-detail { padding-left: 8px; }
-  
+
+  /* --- Mobile responsive --- */
+  img, video { max-width: 100%; height: auto; }
+  .year-section { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  @media (max-width: 768px) {
+    body { padding: 12px; }
+    h1 { font-size: 17px; margin-bottom: 12px; }
+    .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+    .tab { padding: 10px 14px; font-size: 13px; white-space: nowrap; min-height: 44px; display: flex; align-items: center; }
+    .legend { flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .wh-controls { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .toggle { min-height: 44px; padding: 4px 0; }
+    #tooltip { max-width: 260px; font-size: 11px; }
+  }
 </style>
 </head>
 <body>
