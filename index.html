@@ -326,14 +326,18 @@ function buildHeatmap(container, years, dataSource, classifyFn, titleFn, tooltip
     section.appendChild(scrollWrap);
     container.appendChild(section);
   }
-  let _syncing = false;
+  let _rafId = null;
+  let _activeScroller = null;
   for (const sw of scrollWraps) {
     sw.addEventListener('scroll', () => {
-      if (_syncing) return;
-      _syncing = true;
-      for (const other of scrollWraps) { if (other !== sw) other.scrollLeft = sw.scrollLeft; }
-      _syncing = false;
-    });
+      _activeScroller = sw;
+      if (_rafId) return;
+      _rafId = requestAnimationFrame(() => {
+        _rafId = null;
+        const pos = _activeScroller.scrollLeft;
+        for (const other of scrollWraps) { if (other !== _activeScroller) other.scrollLeft = pos; }
+      });
+    }, { passive: true });
   }
 }
 
