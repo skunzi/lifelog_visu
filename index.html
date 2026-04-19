@@ -246,6 +246,7 @@ document.querySelectorAll('.tab').forEach(tab => {
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     tab.classList.add('active');
     document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+    if (tab.dataset.tab === 'trips') { setTimeout(fitTripsToScreen, 0); }
   });
 });
 
@@ -387,6 +388,72 @@ buildHeatmap(
   },
   'trip'
 );
+
+// --- Fit trips heatmaps to screen width (mobile) ---
+const TRIPS_DEFAULT_CELL = 13;
+const TRIPS_DEFAULT_MARGIN = 1.5;
+const TRIPS_DAY_LABEL_W = 38; // day-label width + padding
+
+function fitTripsToScreen() {
+  const container = document.getElementById('charts-trips');
+  if (!container) return;
+  if (container.offsetWidth === 0) return;
+  const scrollWrap = container.firstElementChild;
+  if (!scrollWrap) return;
+  const availableWidth = container.clientWidth;
+  if (availableWidth <= 0) return;
+
+  scrollWrap.querySelectorAll('.year-section').forEach(section => {
+    const heatmap = section.querySelector('.heatmap');
+    if (!heatmap) return;
+    // Count week columns from the first data row
+    const firstRow = heatmap.querySelector('.heatmap-row');
+    if (!firstRow) return;
+    const numWeeks = firstRow.querySelectorAll('.cell').length;
+    if (numWeeks === 0) return;
+
+    // Compute natural width
+    const naturalWidth = TRIPS_DAY_LABEL_W + numWeeks * (TRIPS_DEFAULT_CELL + TRIPS_DEFAULT_MARGIN * 2);
+
+    if (naturalWidth > availableWidth) {
+      // Shrink cells + margins horizontally to fit
+      const spaceForCells = availableWidth - TRIPS_DAY_LABEL_W;
+      const cellTotal = spaceForCells / numWeeks;
+      // Keep same ratio between cell and margin
+      const ratio = TRIPS_DEFAULT_CELL / (TRIPS_DEFAULT_CELL + TRIPS_DEFAULT_MARGIN * 2);
+      const newCell = Math.floor(cellTotal * ratio * 10) / 10;
+      const newMargin = Math.floor(((cellTotal - newCell) / 2) * 10) / 10;
+
+      heatmap.querySelectorAll('.cell').forEach(c => {
+        c.style.width = newCell + 'px';
+        c.style.marginLeft = newMargin + 'px';
+        c.style.marginRight = newMargin + 'px';
+      });
+      heatmap.querySelectorAll('.month-label').forEach(ml => {
+        ml.style.width = newCell + 'px';
+        ml.style.marginLeft = newMargin + 'px';
+        ml.style.marginRight = newMargin + 'px';
+      });
+      scrollWrap.style.overflowX = 'hidden';
+      section.style.width = '100%';
+    } else {
+      // Reset to defaults
+      heatmap.querySelectorAll('.cell').forEach(c => {
+        c.style.width = '';
+        c.style.marginLeft = '';
+        c.style.marginRight = '';
+      });
+      heatmap.querySelectorAll('.month-label').forEach(ml => {
+        ml.style.width = '';
+        ml.style.marginLeft = '';
+        ml.style.marginRight = '';
+      });
+      scrollWrap.style.overflowX = 'auto';
+      section.style.width = '';
+    }
+  });
+}
+window.addEventListener('resize', fitTripsToScreen);
 
 function buildTripTooltip(dateStr) {
   const info = TRIPS_DATA[dateStr];
