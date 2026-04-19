@@ -19,8 +19,8 @@
   .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; font-size: 13px; align-items: center; }
   .legend-item { display: flex; align-items: center; gap: 5px; }
   .legend-swatch { width: 12px; height: 12px; border-radius: 2px; }
-  .year-section { margin-bottom: 28px; }
-  .year-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .year-section { margin-bottom: 28px; width: max-content; min-width: 100%; }
+  .year-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; position: sticky; left: 0; width: 0; overflow: visible; white-space: nowrap; }
   .heatmap { display: inline-block; }
   .heatmap-row { display: flex; align-items: center; }
   .day-label { width: 32px; font-size: 11px; color: #8b949e; text-align: right; padding-right: 6px; }
@@ -251,7 +251,8 @@ document.querySelectorAll('.tab').forEach(tab => {
 
 // --- Shared heatmap builder ---
 function buildHeatmap(container, years, dataSource, classifyFn, titleFn, tooltipAttr) {
-  const scrollWraps = [];
+  const scrollWrap = document.createElement('div');
+  scrollWrap.style.cssText = 'overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px';
   for (const year of years) {
     const section = document.createElement('div');
     section.className = 'year-section';
@@ -319,26 +320,10 @@ function buildHeatmap(container, years, dataSource, classifyFn, titleFn, tooltip
       heatmap.appendChild(row);
     }
 
-    const scrollWrap = document.createElement('div');
-    scrollWrap.style.cssText = 'overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:8px';
-    scrollWrap.appendChild(heatmap);
-    scrollWraps.push(scrollWrap);
-    section.appendChild(scrollWrap);
-    container.appendChild(section);
+    section.appendChild(heatmap);
+    scrollWrap.appendChild(section);
   }
-  let _rafId = null;
-  let _activeScroller = null;
-  for (const sw of scrollWraps) {
-    sw.addEventListener('scroll', () => {
-      _activeScroller = sw;
-      if (_rafId) return;
-      _rafId = requestAnimationFrame(() => {
-        _rafId = null;
-        const pos = _activeScroller.scrollLeft;
-        for (const other of scrollWraps) { if (other !== _activeScroller) other.scrollLeft = pos; }
-      });
-    }, { passive: true });
-  }
+  container.appendChild(scrollWrap);
 }
 
 // --- Activities heatmap ---
