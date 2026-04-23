@@ -24,7 +24,7 @@
   .heatmap { display: inline-block; }
   .heatmap-row { display: flex; align-items: center; }
   .day-label { width: 32px; font-size: 11px; color: #8b949e; text-align: right; padding-right: 6px; }
-  .cell { width: 13px; height: 13px; margin: 1.5px; border-radius: 2px; background: #161b22; cursor: default; }
+  .cell { width: var(--cell-size, 13px); height: var(--cell-size, 13px); margin: var(--cell-margin, 1.5px); border-radius: 2px; background: #161b22; cursor: default; }
   .cell.crossfit { background: #239a3b; }
   .cell.strava { background: #ff8c00; }
   .cell.football { background: #e040fb; }
@@ -56,7 +56,7 @@
   .toggle-thumb { width: 16px; height: 16px; border-radius: 50%; background: #c9d1d9; position: absolute; top: 2px; left: 2px; transition: left 0.2s; }
   .toggle-track.active .toggle-thumb { left: 18px; }
   .month-row { display: flex; padding-left: 38px; margin-bottom: 2px; }
-  .month-label { font-size: 10px; color: #8b949e; width: 13px; margin: 1.5px; text-align: left; }
+  .month-label { font-size: 10px; color: #8b949e; width: var(--cell-size, 13px); margin: var(--cell-margin, 1.5px); text-align: left; }
   #tooltip {
     position: fixed; pointer-events: none; display: none;
     background: #1c2128; border: 1px solid #30363d; border-radius: 6px;
@@ -81,6 +81,11 @@
     .finance-bar { width: 14px; }
     .netto-chart .finance-bar { width: 8px; }
     .netto-chart { gap: 3px; }
+    :root {
+      --cell-size: calc((100vw - 62px) / 53 - 1px);
+      --cell-margin: 0.5px;
+    }
+    .cell { border-radius: 1px; }
   }
 </style>
 </head>
