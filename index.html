@@ -654,7 +654,16 @@ function renderWorkhours() {
         return { cls: 'wt-custom', style: 'background:' + worktimeColor(h) };
       },
       (year, counts) => {
-        return year + '  —  Work days: ' + (counts['wt-custom'] || 0);
+        const days = counts['wt-custom'] || 0;
+        let totalMins = 0;
+        for (const ds of Object.keys(WORKHOURS_DATA)) {
+          if (!ds.startsWith(year)) continue;
+          const entries = WORKHOURS_DATA[ds];
+          if (!entries || isOffDay(entries)) continue;
+          totalMins += totalHours(entries) * 60;
+        }
+        const avgStr = days > 0 ? (Math.floor(totalMins / days / 60) + 'h' + String(Math.round(totalMins / days % 60)).padStart(2, '0')) : '—';
+        return year + '  —  Work days: ' + days + '  |  Avg: ' + avgStr + '/day';
       },
       'workhour'
     );
