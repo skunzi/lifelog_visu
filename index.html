@@ -1078,7 +1078,8 @@ function buildCareerColorInfo(data) {
     for (let j = 0; j < posKeys.length; j++) {
       const t = posKeys.length === 1 ? 0.5 : j / (posKeys.length - 1);
       const lightness = Math.round(82 - t * 52);
-      colorMap[posKeys[j]] = 'hsl(' + hue + ', 75%, ' + lightness + '%)';
+      const hueOffset = posKeys.length === 1 ? 0 : (t - 0.5) * 70;
+      colorMap[posKeys[j]] = 'hsl(' + (hue + hueOffset) + ', 75%, ' + lightness + '%)';
     }
   }
   return { groupOrder, groupPosKeys, colorMap };
