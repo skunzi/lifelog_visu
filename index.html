@@ -86,6 +86,7 @@ h1 { font-size: 20px; margin-bottom: 16px; }
     --cell-margin: 0.5px;
   }
   .cell { border-radius: 1px; }
+  #tooltip { max-width: calc(100vw - 16px); }
 }
 
 </style>
@@ -956,8 +957,31 @@ document.addEventListener('click', e => {
 });
 
 let _touchHideTimer = null;
+
+function findNearestCell(touchX, touchY, radius) {
+  const direct = document.elementFromPoint(touchX, touchY);
+  if (direct) {
+    const directCell = direct.closest('.cell[data-date], .homes-month-cell[data-date]');
+    if (directCell) return directCell;
+  }
+  const activeTab = document.querySelector('.tab-content[style*="display: block"], .tab-content[style*="display:block"]');
+  const scope = activeTab || document;
+  let best = null, bestDist = radius + 1;
+  const candidates = scope.querySelectorAll('.cell[data-date], .homes-month-cell[data-date]');
+  for (const c of candidates) {
+    const r = c.getBoundingClientRect();
+    if (r.bottom < touchY - radius || r.top > touchY + radius) continue;
+    if (r.right < touchX - radius || r.left > touchX + radius) continue;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dist = Math.hypot(touchX - cx, touchY - cy);
+    if (dist < bestDist) { bestDist = dist; best = c; }
+  }
+  return best;
+}
+
 document.addEventListener('touchstart', e => {
-  const cell = e.target.closest('.cell[data-date], .homes-month-cell[data-date]');
+  const t = e.touches[0];
+  const cell = findNearestCell(t.clientX, t.clientY, 20);
   if (!cell) { tooltip.style.display = 'none'; return; }
   e.preventDefault();
   const tip = cell.dataset.tip;
@@ -974,15 +998,15 @@ document.addEventListener('touchstart', e => {
   else if (tip === 'bookmarks') html = buildBookmarksTooltip(cell.dataset.date);
   if (!html) { tooltip.style.display = 'none'; return; }
   tooltip.innerHTML = html;
-  const t = e.touches[0];
-  let x = t.clientX + 12, y = t.clientY + 12;
-  if (x + tooltip.offsetWidth > window.innerWidth - 8) x = t.clientX - tooltip.offsetWidth - 12;
-  if (y + tooltip.offsetHeight > window.innerHeight - 8) y = t.clientY - tooltip.offsetHeight - 12;
+  let x = t.clientX + 12, y = t.clientY - tooltip.offsetHeight - 12;
+  if (x + tooltip.offsetWidth > window.innerWidth - 8) x = window.innerWidth - tooltip.offsetWidth - 8;
+  if (y < 8) y = t.clientY + 12;
+  if (y + tooltip.offsetHeight > window.innerHeight - 8) y = window.innerHeight - tooltip.offsetHeight - 8;
   tooltip.style.left = Math.max(8, x) + 'px';
   tooltip.style.top = Math.max(8, y) + 'px';
   tooltip.style.display = 'block';
   clearTimeout(_touchHideTimer);
-  _touchHideTimer = setTimeout(() => { tooltip.style.display = 'none'; }, 2500);
+  _touchHideTimer = setTimeout(() => { tooltip.style.display = 'none'; }, 3500);
 }, { passive: false });
 
 // --- Laptop usage heatmap ---
