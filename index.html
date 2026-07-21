@@ -985,6 +985,7 @@ function findNearestCell(touchX, touchY, radius) {
 
 document.addEventListener('touchstart', e => {
   const t = e.touches[0];
+  if (e.target.closest('[data-bar-tip]')) return;
   const cell = findNearestCell(t.clientX, t.clientY, 20);
   if (!cell) { tooltip.style.display = 'none'; return; }
   e.preventDefault();
@@ -1012,6 +1013,34 @@ document.addEventListener('touchstart', e => {
   clearTimeout(_touchHideTimer);
   _touchHideTimer = setTimeout(() => { tooltip.style.display = 'none'; }, 3500);
 }, { passive: false });
+
+// --- Time-of-day bar tooltip (touch + click) ---
+function showBarTip(el, x, y) {
+  const text = el && el.dataset && el.dataset.barTip;
+  if (!text) return;
+  tooltip.innerHTML = '<div class="tt-detail">' + esc(text) + '</div>';
+  tooltip.style.display = 'block';
+  let tx = x + 12, ty = y - tooltip.offsetHeight - 12;
+  if (tx + tooltip.offsetWidth > window.innerWidth - 8) tx = window.innerWidth - tooltip.offsetWidth - 8;
+  if (ty < 8) ty = y + 12;
+  tooltip.style.left = Math.max(8, tx) + 'px';
+  tooltip.style.top = Math.max(8, ty) + 'px';
+  clearTimeout(_touchHideTimer);
+  _touchHideTimer = setTimeout(() => { tooltip.style.display = 'none'; }, 3000);
+}
+document.addEventListener('touchstart', e => {
+  const bar = e.target.closest('[data-bar-tip]');
+  if (!bar) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  showBarTip(bar, t.clientX, t.clientY);
+}, { passive: false });
+document.addEventListener('click', e => {
+  if (_tooltipPinned) return;
+  const bar = e.target.closest('[data-bar-tip]');
+  if (!bar) return;
+  showBarTip(bar, e.clientX, e.clientY);
+});
 
 // --- Laptop usage heatmap ---
 function laptopColor(minutes) {
@@ -1128,7 +1157,10 @@ buildHeatmap(
     const bg = mins > 0 ? laptopColor(mins * 4) : '#161b22';
     bar.style.cssText = 'width:100%;max-width:24px;border-radius:2px 2px 0 0;height:' + barH + 'px;background:' + bg;
     const label = mins >= 60 ? Math.floor(mins / 60) + 'h ' + Math.round(mins % 60) + 'm' : Math.round(mins) + 'min';
-    if (mins > 0) bar.title = h + ':00 — avg ' + label;
+    if (mins > 0) {
+      bar.title = h + ':00 — avg ' + label;
+      bar.dataset.barTip = h + ':00 — avg ' + label;
+    }
     col.appendChild(bar);
     const lbl = document.createElement('div');
     lbl.style.cssText = 'font-size:9px;color:#8b949e;margin-top:4px';
@@ -1294,6 +1326,7 @@ buildHeatmap(
       seg.style.cssText = 'width:100%;height:100%;background:#56d364';
       bar.appendChild(seg);
       bar.title = h + ':00 — ' + total + ' total';
+      bar.dataset.barTip = h + ':00 — ' + total + ' total';
     } else {
       bar.style.background = '#161b22';
     }
