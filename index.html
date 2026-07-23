@@ -109,7 +109,7 @@ h1 { font-size: 20px; margin-bottom: 16px; }
 <div id="tab-activities" class="tab-content active">
   <div class="legend">
     <div class="legend-item"><div class="legend-swatch" style="background:#239a3b"></div> Crossfit</div>
-    <div class="legend-item"><div class="legend-swatch" style="background:#ff8c00"></div> Strava</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#ff8c00"></div> Running</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#e040fb"></div> Football</div>
     <div class="legend-item"><div class="legend-swatch" style="background:#1e90ff"></div> Multiple</div>
   </div>
@@ -271,7 +271,7 @@ function buildActivityTooltip(dateStr) {
     }
   }
   if (info.strava.length) {
-    html += '<div class="tt-source st">Strava</div>';
+    html += '<div class="tt-source st">Running</div>';
     if (DETAILED) {
       for (const s of info.strava) {
         let line = esc(s.type);
@@ -514,7 +514,7 @@ buildHeatmap(
     const multi = counts['both'] || 0;
     const parts = [];
     if (cf > 0) parts.push('Crossfit: ' + cf);
-    if (st > 0) parts.push('Strava: ' + st);
+    if (st > 0) parts.push('Running: ' + st);
     if (fb > 0) parts.push('Football: ' + fb);
     if (multi > 0) parts.push('Multiple: ' + multi);
     return year + (parts.length ? '  —  ' + parts.join('  |  ') : '');
@@ -1293,9 +1293,11 @@ buildHeatmap(
     }
   }
   let maxCount = 0;
+  let grandTotal = 0;
   for (const h in hourCounts) {
     let total = 0;
     for (const t in hourCounts[h]) total += hourCounts[h][t];
+    grandTotal += total;
     if (total > maxCount) maxCount = total;
   }
   if (maxCount === 0) return;
@@ -1325,8 +1327,9 @@ buildHeatmap(
       const seg = document.createElement('div');
       seg.style.cssText = 'width:100%;height:100%;background:#56d364';
       bar.appendChild(seg);
-      bar.title = h + ':00 — ' + total + ' total';
-      bar.dataset.barTip = h + ':00 — ' + total + ' total';
+      const pct = Math.round((total / grandTotal) * 100);
+      bar.title = h + ':00 — ' + pct + '%';
+      bar.dataset.barTip = h + ':00 — ' + pct + '%';
     } else {
       bar.style.background = '#161b22';
     }
